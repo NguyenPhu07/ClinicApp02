@@ -29,3 +29,11 @@ function cancelRegistration() {
     alert("Registration Cancelled");
 }
 
+//-------------js---modal---Success--------------------------
+// Đóng modal khi người dùng click bên ngoài modal
+window.onclick = function(event) {
+  var modal2 = document.getElementById("successModal");
+  if (event.target === modal2) {
+    modal2.style.display = "none";
+  }
+}
