@@ -202,6 +202,15 @@ button.cancel {
     border-bottom: 2px solid rgba(0,0,0,0.4);
     margin-bottom: 50px;
 }
+/* css---prescription--------*/
+.prescription-form {
+     max-width: 600px;
+     margin: 50px auto;
+     background-color: #fff;
+     padding: 20px;
+     border-radius: 8px;
+     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 /* css footer----------------*/
 footer {
     color: white;
@@ -259,3 +268,5 @@ div.element>p>a {
 .support a {
     color: white;
 }
+
+

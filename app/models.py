@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float ,Boolean, VARCHAR, ForeignKey, Enum
 from sqlalchemy.orm import relationship, backref
 from app import db, app
+from flask_login import UserMixin
 import enum
 from datetime import datetime
 
@@ -12,16 +13,19 @@ class UserRoleEnum(enum.Enum):
     CASHIER = 4
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
     tendangnhap = Column(String(50), nullable=False, unique=True)
-    MatKhau = Column(String(50), nullable=False)
+    MatKhau = Column(String(100), nullable=False)
     user_role = Column(Enum(UserRoleEnum), default=UserRoleEnum.DOCTOR)
-    DSbacsi = relationship('BacSi', uselist=False, backref= 'users', lazy=True)
+    DSbacsi = relationship('BacSi', uselist=False, backref= 'users', lazy=True,)
     DSadmin = relationship('Admin', uselist=False, backref='users', lazy=True)
     DSyta = relationship('YTa', uselist=False, backref='users', lazy=True)
     DSthungan = relationship('ThuNgan', uselist=False, backref='users', lazy=True)
+
+    def __str__(self):
+        return self.tendangnhap
 
 
 class BacSi(db.Model):
@@ -33,9 +37,12 @@ class BacSi(db.Model):
     SoChungChiHanhNghe = Column(String(50), nullable=False)
     avatar = Column(VARCHAR(100),
                     default='https://res.cloudinary.com/dxxwcby8l/image/upload/v1688179242/hclq65mc6so7vdrbp7hz.jpg')
-    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), unique=False)
     listkham = relationship('DSCaKham', backref='bacsi', lazy=True)
     DSPhieuKham = relationship('PhieuKhamBenh', backref='bacsi', lazy=True)#-------
+
+    def __str__(self):
+        return self.hoten
 
 
 class Admin(db.Model):
@@ -76,6 +83,9 @@ class BenhNhan(db.Model):
     DSPhieuKham = relationship('PhieuKhamBenh', backref='benhnhan', lazy=True) #--------
     DSHoaDonThanhToan = relationship('HoaDon', backref='benhnhan', lazy=True)#------
 
+    def __str__(self):
+        return self.hoten
+
 
 class DKKham(db.Model):
     __tablename__ = 'dangkykham'
@@ -101,10 +111,11 @@ class PhieuKhamBenh(db.Model):
     ngaykham = Column(DateTime, default=datetime.now())
     trieuchung = Column(String(100))
     chandoan = Column(String(100))
-    bn_id = Column(Integer, ForeignKey(BenhNhan.id), nullable=False)
-    bs_id = Column(Integer, ForeignKey(BacSi.id), nullable=False)
+    bn_id = Column(Integer, ForeignKey(BenhNhan.id))
+    bs_id = Column(Integer, ForeignKey(BacSi.id))
     DSHoaDon = relationship('HoaDon', uselist=False, backref='phieukhambenh', lazy=True)
     DSThuoc = relationship('ChiTietDonThuoc', backref='phieukhambenh', lazy=True)#--------------
+
 
 
 #------------new------------------------
@@ -126,6 +137,9 @@ class DonVi(db.Model):
     loaidonvi = Column(String(50), nullable=False, unique=True)
     DSThuoc = relationship('Thuoc', backref='donvi',lazy=True)
 
+    def __str__(self):
+        return self.loaidonvi
+
 #---------------new-----------------------
 class DanhMuc(db.Model):
     __tablename__ = 'danhmuc'
@@ -139,11 +153,13 @@ class Thuoc(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     tenthuoc = Column(String(50), nullable=False, unique=True)
     gia = Column(Float, default=0)
-    cachdung = Column(VARCHAR(50), nullable=False, unique=False)
     donvi_id = Column(Integer, ForeignKey(DonVi.id), nullable=False)
     DSPhieuKham = relationship('ChiTietDonThuoc', backref='thuoc', lazy=True)#-------------
     DSDanhmuc = relationship('DanhMuc', secondary='danhmuc_thuoc' , lazy='subquery',
                              backref=backref('DSThuoc', lazy = True))
+
+    def __str__(self):
+        return self.tenthuoc
 
 #-----------------new-midle-table---------------------
 danhmuc_thuoc = db.Table('danhmuc_thuoc',
@@ -156,8 +172,11 @@ class ChiTietDonThuoc(db.Model):
     __tablename__ = 'chitietdonthuoc'
     id = Column(Integer, primary_key=True, autoincrement=True)
     soluong = Column(Integer, default=0)
+    ngaytao = Column(DateTime, default=datetime.now())
+    cachdung = Column(VARCHAR(50), nullable=False, unique=False)
     phieu_id = Column(Integer, ForeignKey(PhieuKhamBenh.id), nullable=False)
     thuoc_id = Column(Integer, ForeignKey(Thuoc.id), nullable=False)
+    #DSThuoc = relationship('Thuoc', backref='chitietdonthuoc', lazy=True)
 
 
 
@@ -168,21 +187,33 @@ if __name__ == '__main__':
         # db.drop_all()
         db.create_all()
 
+        import hashlib
+
         # u1 = User(tendangnhap='Thanh', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
-        # db.session.add(u1)
-        # db.session.commit()
-        #
         # u2 = User(tendangnhap='DKhanhtv123', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
-        # db.session.add(u2)
-        # db.session.commit()
         # u3 = User(tendangnhap='bsLan', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
         # u4 = User(tendangnhap='bsPhuoc', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
         # u5 = User(tendangnhap='bsCKIThuy', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
         # u6 = User(tendangnhap='bsTien', MatKhau='123456', user_role=UserRoleEnum.DOCTOR)
         # u7 = User(tendangnhap='calieKim', MatKhau='123456', user_role=UserRoleEnum.CASHIER)
-        # db.session.add_all([u3, u4, u5, u6,u7])
+        # db.session.add_all([u1,u2,u3, u4, u5, u6,u7])
         # db.session.commit()
-        # #
+        # sửa lại mật khẩu
+
+        #-----------thêm y tá, admin---------------------------
+        # u8 = User(tendangnhap='thaoyt123', MatKhau=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
+        #           user_role= UserRoleEnum.NURSE)
+        # u9 = User(tendangnhap='admin123', MatKhau=str(hashlib.md5('123456'.encode('utf-8')).hexdigest()),
+        #          user_role=UserRoleEnum.ADMIN)
+        # db.session.add(u8)
+        # db.session.add(u9)
+        # db.session.commit()
+
+
+
+
+
+
         # b1 = BacSi(hoten='BS. Ho Van Thanh', sdt='091278245', chuyenkhoa='Nội sản',
         #            SoChungChiHanhNghe='TN-0123', user_id=1)
         # b2 = BacSi(hoten='BS. Trương thị diễm khanh', sdt='09343425', chuyenkhoa='Khoa Nhi',
@@ -222,17 +253,21 @@ if __name__ == '__main__':
         # db.session.add_all([d1,d2,d3,d4])
         # db.session.commit()
 
-        # thuoc1 = Thuoc(tenthuoc='Dimadrol', gia=4000, cachdung='2 lần sáng chiều', donvi_id=1)
-        # thuoc2 = Thuoc(tenthuoc='Panactol', gia=4000, cachdung='2 lần chiều', donvi_id=2)
-        # thuoc3 = Thuoc(tenthuoc='Neucotic', gia=4000, cachdung='1 lần sáng tối', donvi_id=1)
-        # thuoc4 = Thuoc(tenthuoc='Dimadrol-3', gia=4000, cachdung='2 lần sáng chiều', donvi_id=1)
-        # thuoc5 = Thuoc(tenthuoc='Neocin', gia=4000, cachdung='3 lần sáng chiều', donvi_id=2)
-        # thuoc6 = Thuoc(tenthuoc='Encorate', gia=4000, cachdung='1 lần sáng chiều', donvi_id=3)
+        # thuoc1 = Thuoc(tenthuoc='Dimadrol', gia=4000, donvi_id=1)
+        # thuoc2 = Thuoc(tenthuoc='Panactol', gia=4000, donvi_id=2)
+        # thuoc3 = Thuoc(tenthuoc='Neucotic', gia=4000, donvi_id=1)
+        # thuoc4 = Thuoc(tenthuoc='Dimadrol-3', gia=4000, donvi_id=1)
+        # thuoc5 = Thuoc(tenthuoc='Neocin', gia=4000, donvi_id=2)
+        # thuoc6 = Thuoc(tenthuoc='Encorate', gia=4000, donvi_id=3)
         # db.session.add_all([thuoc1, thuoc2, thuoc3, thuoc4, thuoc5, thuoc6])
         # db.session.commit()
 
-        # chitiet1 = ChiTietDonThuoc(soluong= 2, phieu_id=1, thuoc_id=1)
-        # chitiet1_2 = ChiTietDonThuoc(soluong= 2, phieu_id=1, thuoc_id=2)
-        # chitite1_3 = ChiTietDonThuoc(soluong= 2, phieu_id=1, thuoc_id=3)
-        # db.session.add_all([chitiet1,chitiet1_2,chitite1_3])
+
+
+        # ---------------Cập nhật lại csdl---------------
+        # for u in  User.query.all():
+        #     u.MatKhau = str(hashlib.md5('123456'.encode('utf-8')).hexdigest())
+        #
         # db.session.commit()
+
+

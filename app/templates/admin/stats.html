@@ -1,0 +1,77 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<h1 class="text-center text-ìno">Thống Kê Báo Cáo</h1>
+<!------Thống kê báo cáo thuốc--------------->
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <table class="table">
+                <tr>
+                    <th>Mã thuốc</th>
+                    <th>Tên thuốc</th>
+                    <th>Đơn vị tính</th>
+                    <th> Số lần dùng</th>
+                </tr>
+                {% for s in stats %}
+                <tr>
+                    <td>{{s[0]}}</td>
+                    <td>{{s[1]}}</td>
+                    <td>{{s[2]}}</td>
+                    <td>{{s[3]}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    <div class="col-md-6">
+        <canvas id="myChart" width="400" height="400"></canvas>
+    </div>
+     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <script>
+         let data = [];
+         let labels = [];
+         {% for s in stats %}
+         data.push({{s[3]}})
+         labels.push('{{s[1]}}')
+         {% endfor %}
+         window.onload = function(){
+            const ctx = document.getElementById('myChart').getContext('2d')
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                 data: {
+                 labels: labels,
+                 datasets: [{
+                    label: 'số lần dùng',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                 }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        }
+     </script>
+</div>
+{% endblock %}

@@ -37,3 +37,17 @@ window.onclick = function(event) {
     modal2.style.display = "none";
   }
 }
+//-----------js------Presciption---------------------------
+$('#addBtn').on("click",function(){
+        let pro = $('#problem').val();
+        let h=`<div class="comment">
+          <div><i class="fa-solid fa-person-circle-question"></i> :${pro}</div>
+          <div>
+            <i class="fa-solid fa-user-check"></i>
+            <input type="text" id="answer" placeholder="Giải đáp..."/>
+            <input type="button" id="addBtn" value="Add"/>
+          </div>
+        </div>`
+
+        $('.comments').prepend(h);
+})
